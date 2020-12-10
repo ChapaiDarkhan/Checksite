@@ -4,9 +4,11 @@ import requests
 
 class Site(models.Model):
     url = models.URLField(unique=True)
-    status_code = models.IntegerField()
+    status_code = models.IntegerField(null=True, blank=True)
     # Using TextField here because sqlite3 not supporting JSONField
     extra_data = models.TextField(null=True, blank=True)
+
+    objects = models.Manager()
 
     class Meta:
         verbose_name = 'Site'
@@ -16,5 +18,7 @@ class Site(models.Model):
         return self.url
 
     def check_status(self):
-        response = requests.get('https://api.github.com/user')
+        response = requests.get(self.url)
         self.status_code = response.status_code
+        self.extra_data = response.json()
+        self.save()
